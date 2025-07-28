@@ -4,38 +4,85 @@ using UnityEngine;
 
 public class CardFlip : MonoBehaviour
 {
-    [System.Serializable]
-    public class Card
+    private CardRotate firstCard = null;
+    private CardRotate secondCard = null;
+    private bool isBusy = false;
+
+    public AudioSource backgroundMusic;
+    public AudioSource sfxAudioSource;
+    public AudioClip winSound;
+    public GameObject winPanel;
+
+    private int totalCards;
+    private int matchedCards = 0;
+
+
+    public int cardId; // Set this when instantiating cards
+
+    void Start()
     {
-        public GameObject frontImage;
-        public GameObject backImage;
+        totalCards = GameObject.FindGameObjectsWithTag("Card").Length;
+        winPanel.SetActive(false);
     }
 
-    public Card[] cards;  // Array of 9 cards
-
-    private void Start()
+    public bool IsBusy()
     {
-        ShowAllFront();
-        StartCoroutine(FlipAllBackAfterDelay(2f));
+        return isBusy;
     }
 
-    void ShowAllFront()
+    public void CardRevealed(CardRotate card)
     {
-        foreach (Card card in cards)
+        if (firstCard == null)
         {
-            card.frontImage.SetActive(true);
-            card.backImage.SetActive(false);
+            firstCard = card;
+        }
+        else if (secondCard == null)
+        {
+            secondCard = card;
+            StartCoroutine(CheckMatch());
         }
     }
 
-    IEnumerator FlipAllBackAfterDelay(float delay)
+    IEnumerator CheckMatch()
     {
-        yield return new WaitForSeconds(delay);
+        isBusy = true;
 
-        foreach (Card card in cards)
+        yield return new WaitForSeconds(0.5f); // Wait to let player see the second card
+
+        if (firstCard.cardId == secondCard.cardId)
         {
-            card.frontImage.SetActive(false);
-            card.backImage.SetActive(true);
+            firstCard.PlayDeleteAnimation();
+            secondCard.PlayDeleteAnimation();
+
+            matchedCards += 2; //  Only increase when match is correct
+
+            if (matchedCards >= totalCards)
+            {
+                GameWin(); //  Show panel only after all matched
+            }
         }
+        else
+        {
+            firstCard.FlipToBack();
+            secondCard.FlipToBack();
+        }
+
+        // Reset cards and state
+        firstCard = null;
+        secondCard = null;
+        isBusy = false;
+
+    }
+
+    void GameWin()
+    {
+        backgroundMusic.Stop();
+        sfxAudioSource.PlayOneShot(winSound);
+        winPanel.SetActive(true);
+    }
+
+    public void exit()
+    {
+        Application.Quit();
     }
 }

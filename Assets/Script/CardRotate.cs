@@ -3,74 +3,133 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CardRotate : MonoBehaviour
+public class CardRotate : MonoBehaviour, IPointerClickHandler
 {
     public GameObject frontImage;
     public GameObject backImage;
 
-    private bool isFlipped = false;
+    public int cardId; // to compare match
     private bool isFlipping = false;
-    public float flipDuration = 0.5f;
+    private bool isMatched = false;
+    public AudioSource Playsound;
+    public AudioClip FlipSound;
+    public AudioClip DeleteSound;
 
-    void Start()
+    private CardFlip gameManager;
+
+    private void Start()
     {
         frontImage.SetActive(true);
         backImage.SetActive(false);
 
-        // Auto flip after delay (optional)
-        StartCoroutine(FlipAfterDelay(1f));
+        gameManager = FindObjectOfType<CardFlip>();
+
+        // Auto flip after 1 second
+        StartCoroutine(AutoFlipToBack(1f));
     }
 
-    public void TriggerFlip()
+    IEnumerator AutoFlipToBack(float delay)
     {
-        if (!isFlipping)
+        yield return new WaitForSeconds(delay);
+        FlipToBack();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (!isFlipping && !isMatched && !gameManager.IsBusy() && backImage.activeSelf)
         {
-            StartCoroutine(Flip());
-            Debug.Log("hi");
+            StartCoroutine(FlipToFront());
+            Playsound.PlayOneShot(FlipSound);
         }
     }
 
-    IEnumerator FlipAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        StartCoroutine(Flip());
-    }
-
-    IEnumerator Flip()
+    IEnumerator FlipToFront()
     {
         isFlipping = true;
 
-        Quaternion startRot = transform.rotation;
-        Quaternion halfRot = startRot * Quaternion.Euler(0f, 90f, 0f);
-        Quaternion endRot = startRot * Quaternion.Euler(0f, 180f, 0f);
+        // Rotation animation (optional)
+        yield return RotateCard(0f, 90f);
+        frontImage.SetActive(true);
+        backImage.SetActive(false);
+        yield return RotateCard(90f, 180f);
 
-        float time = 0f;
+        isFlipping = false;
 
-        // First half: rotate to 90°
-        while (time < flipDuration / 2)
+        gameManager.CardRevealed(this);
+    }
+
+    public void FlipToBack()
+    {
+        if (!isMatched && frontImage.activeSelf)
         {
-            time += Time.deltaTime;
-            transform.rotation = Quaternion.Slerp(startRot, halfRot, time / (flipDuration / 2));
-            yield return null;
+            StartCoroutine(FlipBackRoutine());
         }
+    }
 
-        // Swap image
-        isFlipped = !isFlipped;
-        frontImage.SetActive(!isFlipped);
-        backImage.SetActive(isFlipped);
+    IEnumerator FlipBackRoutine()
+    {
+        isFlipping = true;
 
-        time = 0f;
+        yield return RotateCard(180f, 90f);
+        frontImage.SetActive(false);
+        backImage.SetActive(true);
+        yield return RotateCard(90f, 0f);
 
-        // Second half: rotate to 180°
-        while (time < flipDuration / 2)
-        {
-            time += Time.deltaTime;
-            transform.rotation = Quaternion.Slerp(halfRot, endRot, time / (flipDuration / 2));
-            yield return null;
-        }
-
-        transform.rotation = endRot;
         isFlipping = false;
     }
+
+    public void SetMatched()
+    {
+
+        isMatched = true;
+        Destroy(gameObject, 0.5f);
+       
+    }
+
+    IEnumerator RotateCard(float fromY, float toY)
+    {
+        float time = 0f;
+        float duration = 0.25f;
+
+        while (time < duration)
+        {
+            float yRot = Mathf.Lerp(fromY, toY, time / duration);
+            transform.rotation = Quaternion.Euler(0, yRot, 0);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.rotation = Quaternion.Euler(0, toY, 0);
+    }
+    public void PlayDeleteAnimation()
+    {
+        StartCoroutine(DeleteAnimation());
+        Playsound.PlayOneShot(DeleteSound);
+    }
+
+    IEnumerator DeleteAnimation()
+    {
+        float duration = 0.5f;
+        float elapsed = 0f;
+        Vector3 startScale = transform.localScale;
+        Vector3 endScale = Vector3.zero;
+
+        while (elapsed < duration)
+        {
+            transform.localScale = Vector3.Lerp(startScale, endScale, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.localScale = endScale;
+        Destroy(gameObject); // finally destroy the card
+    }
+   /* public void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }*/
 
 }
