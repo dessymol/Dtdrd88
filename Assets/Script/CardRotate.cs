@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
 
 public class CardRotate : MonoBehaviour, IPointerClickHandler
 {
@@ -17,6 +19,15 @@ public class CardRotate : MonoBehaviour, IPointerClickHandler
 
     private CardFlip gameManager;
 
+    public Image frontImageComponent; 
+
+    public void SetCardImage(Sprite sprite, int id)
+    {
+        frontImageComponent.sprite = sprite;
+        cardId = id;
+    }
+
+
     private void Start()
     {
         frontImage.SetActive(true);
@@ -24,7 +35,7 @@ public class CardRotate : MonoBehaviour, IPointerClickHandler
 
         gameManager = FindObjectOfType<CardFlip>();
 
-        // Auto flip after 1 second
+    
         StartCoroutine(AutoFlipToBack(1f));
     }
 
@@ -36,7 +47,7 @@ public class CardRotate : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (!isFlipping && !isMatched && !gameManager.IsBusy() && backImage.activeSelf)
+        if (!isFlipping && !isMatched && backImage.activeSelf)
         {
             StartCoroutine(FlipToFront());
             Playsound.PlayOneShot(FlipSound);
@@ -47,7 +58,7 @@ public class CardRotate : MonoBehaviour, IPointerClickHandler
     {
         isFlipping = true;
 
-        // Rotation animation (optional)
+        
         yield return RotateCard(0f, 90f);
         frontImage.SetActive(true);
         backImage.SetActive(false);
@@ -78,12 +89,15 @@ public class CardRotate : MonoBehaviour, IPointerClickHandler
         isFlipping = false;
     }
 
-    public void SetMatched()
+    public bool IsMatched()
     {
+        return isMatched;
+    }
 
+    public void SetMatchedInstantly()
+    {
         isMatched = true;
-        Destroy(gameObject, 0.5f);
-       
+        gameObject.SetActive(false);
     }
 
     IEnumerator RotateCard(float fromY, float toY)
@@ -122,14 +136,17 @@ public class CardRotate : MonoBehaviour, IPointerClickHandler
         }
 
         transform.localScale = endScale;
-        Destroy(gameObject); // finally destroy the card
+        frontImage.SetActive(false);
+        backImage.SetActive(false);
+        GetComponent<Image>().color = new Color(0, 0, 0, 0); // transparent
+
     }
-   /* public void PlaySound(AudioClip clip)
-    {
-        if (audioSource != null && clip != null)
-        {
-            audioSource.PlayOneShot(clip);
-        }
-    }*/
+    /* public void PlaySound(AudioClip clip)
+     {
+         if (audioSource != null && clip != null)
+         {
+             audioSource.PlayOneShot(clip);
+         }
+     }*/
 
 }

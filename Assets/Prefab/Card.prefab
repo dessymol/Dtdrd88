@@ -93,7 +93,7 @@ GameObject:
   - component: {fileID: 2431109084368157006}
   m_Layer: 5
   m_Name: Card
-  m_TagString: Untagged
+  m_TagString: Card
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -196,6 +196,7 @@ MonoBehaviour:
   Playsound: {fileID: 2431109084368157006}
   FlipSound: {fileID: 8300000, guid: 3e7aaea1e651796439022f78e60bc3a2, type: 3}
   DeleteSound: {fileID: 8300000, guid: 6eb98285921801b46a0d04bb71e2925a, type: 3}
+  frontImageComponent: {fileID: 4100010382034687332}
 --- !u!225 &7023756659374615688
 CanvasGroup:
   m_ObjectHideFlags: 0
