@@ -7,8 +7,8 @@ public class CardSpawner : MonoBehaviour
     public GameObject cardPrefab;
     public Sprite[] cardImages; 
     public Transform cardContainer;
-    public int rows = 2;
-    public int columns = 2;
+    public int rows ;
+    public int columns ;
 
     private List<int> cardIds = new List<int>();
 

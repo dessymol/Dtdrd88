@@ -9,18 +9,20 @@ public class PlatformHandler : MonoBehaviour
 
     void Start()
     {
-#if UNITY_STANDALONE
-        quitButton.SetActive(true);   // Show on PC/Mac
-        exitButton.SetActive(true);
-#else
+#if UNITY_ANDROID
         quitButton.SetActive(false);  // Hide on Android
         exitButton.SetActive(false);
+#else
+        quitButton.SetActive(true);   // Show on PC or other platforms
+        exitButton.SetActive(true);
 #endif
     }
+
+
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }
